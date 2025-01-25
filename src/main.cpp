@@ -90,6 +90,9 @@ void driveBackward(double targ, double velocityK = 1) {
   rightB.stop(brake);
 }
 
+void test() {
+  driveBackward(1);
+}
 
 /* this function is the thing that lets you have multiple slots for auton (clicking the brain switches slots and switches auton)
    if you get auton to work, this is where you should put in the code for the different corners and which slot you want each auton to go in.
