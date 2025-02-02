@@ -17,20 +17,26 @@ competition Competition;
 
 // this section defines global variables (variables that are used across different functions) and also the motors and vex parts
 vex::brain     Brain;
-motor leftF = motor(PORT15, true);
-motor leftB = motor(PORT16, true);
-motor leftT = motor(PORT17, false); // port 3 is broken
-motor intakeMotor = motor(PORT4, false);
+motor leftF = motor(PORT16, true);
+motor leftB = motor(PORT17, true);
+motor leftT = motor(PORT18, false); // port 3 is broken
+motor intakeMotor = motor(PORT1, false);
 
 motor rightF = motor(PORT6, false);
 motor rightB = motor(PORT7, false);
-motor rightT = motor(PORT20, true);
+motor rightT = motor(PORT8 true);
 
 inertial inert = inertial(PORT11);
+controller c = controller();
+digital_out doink = digital_out(Brain.ThreeWirePort.A);
+digital_out clamp = digital_out(Brain.ThreeWirePort.B);
 
-const int tile = 340;
+double gAngle = inert.rotation(degrees);
+const int tile = 345;
 int current_auton_selection = 0;
 bool auto_started = false;
+bool timeout = false;
+bool timer_time = 4000;
 
 
 
@@ -160,6 +166,7 @@ void driveBackward(double targ) {
   double derivative;
   double previousError;
   double error = dist + avgPosition;
+  // double kp = 100;
   double kp = 0.15;
   double kd  = 0.35;
   double kpt = 1;
@@ -169,13 +176,13 @@ void driveBackward(double targ) {
     previousError = error;
     avgPosition = (leftF.position(degrees) + leftT.position(degrees) + leftB.position(degrees) + rightF.position(degrees) + rightT.position(degrees) + rightB.position(degrees))/6;
     error = dist + avgPosition;
-    Brain.Screen.printAt(10, 10, )
     derivative = error - previousError;
     tError = originalHeading - inert.rotation(degrees);
 
-    double speed = error*kp + derivative*kd;
-    if (speed > 40) {
-      speed = 40;
+    double speed = error*kp;// + derivative*kd;
+    Brain.Screen.printAt(10, 10, "speed %f", speed);
+    if (speed < 5) {
+      speed = 0;
     }
 
     leftT.spin(reverse, speed, pct);
@@ -417,10 +424,11 @@ double* calcRTangle(double longleg, double shortleg) {
 void test() { // auton testing
   driveBackward(1);
   turnRight(45);
+  // turnLeft(90);
 }
 
 void autonSkills() { // unfinished skills auton
-  driveBackward(0.45, 0.65);
+  driveBackward(0.45);
   clamp.set(true);
   intakeMotor.spin(forward, 100, pct);
   turnRight(90);
@@ -428,7 +436,7 @@ void autonSkills() { // unfinished skills auton
   wait(0.3, sec);
   driveForward(0.5);
   turnRight(110);
-  driveForward(1.4, 0.4);
+  driveForward(1.4);
   driveBackward(2.07);
   clamp.set(false);
   driveForward(0.3);
@@ -450,7 +458,7 @@ void autonSkills() { // unfinished skills auton
 
 
 void preloadREDPOS() {
-  driveBackward(1.5, 0.65);
+  driveBackward(1.5);
   clamp.set(true);
   intakeMotor.spin(forward, 80, pct);
   turnLeft(90);
@@ -467,8 +475,10 @@ void preloadREDNEG() {
   driveForward(1);
 }
 void preloadBLUEPOS() {
-  driveBackward(1.4);
+  driveBackward(1.5); 
+  wait(1,sec);
   clamp.set(true);
+  driveForward(0.2);
   intakeMotor.spin(forward, 70, pct);
   turnRight(90);
   driveForward(1);
@@ -540,31 +550,30 @@ void usercontrol(void) {
 
 void autonomous(void) {
   auto_started = true;
-  test();
-  // switch(current_auton_selection){ 
-  //   case 0:
-  //     preloadREDPOS();
-  //     break;
-  //   case 1:
-  //     preloadREDNEG();
-  //     break;
-  //   case 2:
-  //     preloadBLUEPOS();
-  //     break;
-  //   case 3:
-  //     preloadBLUENEG();
-  //     break;
-  //   case 4:
-  //     test();
-  //     break;
-  //   case 5:
-  //     break;
-  //   case 6:
-  //     autonSkills();
-  //     break;
-  //   case 7:
-  //     usercontrol();
-  // }
+  switch(current_auton_selection){ 
+    case 0:
+      preloadREDPOS();
+      break;
+    case 1:
+      preloadREDNEG();
+      break;
+    case 2:
+      preloadBLUEPOS();
+      break;
+    case 3:
+      preloadBLUENEG();
+      break;
+    case 4:
+      test();
+      break;
+    case 5:
+      break;
+    case 6:
+      autonSkills();
+      break;
+    case 7:
+      usercontrol();
+  }
 } 
 
 int main() {
@@ -573,7 +582,7 @@ int main() {
   Competition.drivercontrol(usercontrol);
 
   thread t(brainDisplay);
-  Run the pre-autonomous function.
+  // Run the pre-autonomous function.
   pre_auton();
 
   // Prevent main from exiting with an infinite loop.
