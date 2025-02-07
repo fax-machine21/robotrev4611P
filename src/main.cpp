@@ -22,9 +22,9 @@ motor leftB = motor(PORT17, true);
 motor leftT = motor(PORT18, false); // port 3 is broken
 motor intakeMotor = motor(PORT1, false);
 
-motor rightF = motor(PORT6, false);
-motor rightB = motor(PORT7, false);
-motor rightT = motor(PORT8 true);
+motor rightF = motor(PORT4, false);
+motor rightB = motor(PORT10, false);
+motor rightT = motor(PORT7, true);
 
 inertial inert = inertial(PORT11);
 controller c = controller();
@@ -35,8 +35,6 @@ double gAngle = inert.rotation(degrees);
 const int tile = 345;
 int current_auton_selection = 0;
 bool auto_started = false;
-bool timeout = false;
-bool timer_time = 4000;
 
 
 
@@ -114,83 +112,31 @@ void pre_auton(void) {
    going to try using regular left turning but I didn't get a chance to. You can use the 2 hours 
    either trying to get turning to work with auton or practicing driving strategy */
 
-void driveForward(double targ, double velocityK = 0.5) {
-  leftT.resetPosition();
-  double dist = targ*tile;
-
-  double derivative = 0.0;
-  double error = dist - leftT.position(degrees);
-  double kp = 0.4;
-  double kd  = 0.1;
+void drive(double target) {
+  leftF.resetPosition();
+  rightF.resetPosition();
+  target *= tile;
+  double derivative;
+  double error = target - (leftF.position(degrees) + rightF.position(degrees))/2;
+  double kp = 1.2;
+  double kd = 0.5;
 
   while (fabs(error) > 3) {
     double previousError = error;
-    error = dist - leftT.position(degrees);
+    error = target - (leftF.position(degrees) + rightF.position(degrees))/2;
     derivative = error - previousError;
 
-    int speed = error*kp - derivative*kd;
+    double speed = error*kp - derivative*kd;
+    if (speed > 40) speed = 40;
+    if (speed < -40) speed = -40;
 
-    leftF.spin(forward, speed*velocityK, pct);
-    leftT.spin(forward, speed*velocityK, pct);
-    leftB.spin(forward, speed*velocityK, pct);
-    rightF.spin(forward, speed*velocityK, pct);
-    rightT.spin(forward, speed*velocityK, pct);
-    rightB.spin(forward, speed*velocityK, pct);
-  }
-
-  leftF.setVelocity(0, pct);
-  leftT.setVelocity(0, pct);
-  leftB.setVelocity(0, pct);
-  rightF.setVelocity(0, pct);
-  rightT.setVelocity(0, pct);
-  rightB.setVelocity(0, pct);
-  leftF.stop(brake);
-  leftT.stop(brake);
-  leftB.stop(brake);
-  rightF.stop(brake);
-  rightT.stop(brake);
-  rightB.stop(brake);
-}
-
-void driveBackward(double targ) {
-  leftF.resetPosition();
-  leftT.resetPosition();
-  leftB.resetPosition();
-  rightF.resetPosition();
-  rightT.resetPosition();
-  rightB.resetPosition();
-  double dist = targ*340;
-  double avgPosition = (leftF.position(degrees) + leftT.position(degrees) + leftB.position(degrees) + rightF.position(degrees) + rightT.position(degrees) + rightB.position(degrees))/6;
-  double originalHeading = inert.rotation(degrees);
-
-  double derivative;
-  double previousError;
-  double error = dist + avgPosition;
-  // double kp = 100;
-  double kp = 0.15;
-  double kd  = 0.35;
-  double kpt = 1;
-  double tError = originalHeading - inert.rotation(degrees);
-
-  while (fabs(error) > 3) {
-    previousError = error;
-    avgPosition = (leftF.position(degrees) + leftT.position(degrees) + leftB.position(degrees) + rightF.position(degrees) + rightT.position(degrees) + rightB.position(degrees))/6;
-    error = dist + avgPosition;
-    derivative = error - previousError;
-    tError = originalHeading - inert.rotation(degrees);
-
-    double speed = error*kp;// + derivative*kd;
-    Brain.Screen.printAt(10, 10, "speed %f", speed);
-    if (speed < 5) {
-      speed = 0;
-    }
-
-    leftT.spin(reverse, speed, pct);
-    leftF.spin(reverse, speed, pct);
-    leftB.spin(reverse, speed, pct);
-    rightF.spin(reverse, speed, pct);
-    rightT.spin(reverse, speed, pct);
-    rightB.spin(reverse, speed, pct);
+    leftT.spin(forward, speed, pct);
+    leftF.spin(forward, speed, pct);
+    leftB.spin(forward, speed, pct);
+    rightF.spin(forward, speed, pct);
+    rightT.spin(forward, speed, pct);
+    rightB.spin(forward, speed, pct);
+    wait(10, msec);
   }
 
   leftF.stop(brake);
@@ -200,49 +146,6 @@ void driveBackward(double targ) {
   rightT.stop(brake);
   rightB.stop(brake);
 }
-
-// bot moves forward and corrects to the angle it should drive to (exponential slope shape instead of linear slope shape --> much easier to transition without stopping)
-// void arcDrive(int targ, int angle) {
-//   leftT.resetPosition();
-//   inert.resetRotation();
-//   int dist = targ*tile;
-
-//   double derivative;
-//   double error = dist - leftT.position(degrees);
-//   double tError = dist - leftT.position(degrees);
-//   double kp = 0.4;
-//   double kd = 0.1;
-//   double kpt = 0.1;
-  
-//   while (fabs(tError) > 3) {
-//     double previousError = error;
-//     error = dist - leftT.position(degrees);
-//     tError = dist - leftT.position(degrees);
-//     derivative = error - previousError;
-
-//     double speed = error*kp - derivative*kd;
-
-//     leftF.spin(forward, speed + tError*kpt, pct);
-//     leftT.spin(forward, speed + tError*kpt, pct);
-//     leftB.spin(forward, speed + tError*kpt, pct);
-//     rightF.spin(forward, speed - tError*kpt, pct);
-//     rightT.spin(forward, speed - tError*kpt, pct);
-//     rightB.spin(forward, speed - tError*kpt, pct);
-//   }
-
-//   // leftF.setVelocity(0, pct);
-//   // leftT.setVelocity(0, pct);
-//   // leftB.setVelocity(0, pct);
-//   // rightF.setVelocity(0, pct);
-//   // rightT.setVelocity(0, pct);
-//   // rightB.setVelocity(0, pct);
-//   leftF.stop(brake);
-//   leftT.stop(brake);
-//   leftB.stop(brake);
-//   rightF.stop(brake);
-//   rightT.stop(brake);
-//   rightB.stop(brake);
-// }
 
 // // this is a very intelligent piece of code that makes the robot turn left and makes the team very happy because it allows our robot to turn left to grab the points and make us very hpapy
 void turnLeft(double angle) {
@@ -322,31 +225,15 @@ void brainDisplay() {
   }
 }
 
-// // returns both angles, index 0 for smaller angle and 1 for bigger angle
-double* calcRTangle(double longleg, double shortleg) {
-  double ang2 = atan(longleg/shortleg);
-  
-  double ang1 = atan(shortleg/longleg);
-  double arr[2];
-  arr[0] = ang1 *180.0 /M_PI;
-  arr[1] = ang2 *180.0 /M_PI;
-  c.Screen.print("%f", int(arr[0]));
-  return arr;
-  
-}
-
-// // hi rishi keep on coding :) - neev
-
-
 
 
 // // ============================================== AUTON FUNCTIONS ===================================================
 
-// /* the next 4 functions are for the auton for each respective corner. 
-//    the issue that wasn't working was that the code kept getting stuck in the turning functions
-//    the best way i think you can solve this is by using normal turn instead of PID turning, and 
-//    i made a new turning function called regLeft() instead of turnLeft(), so try using that 
-//    instead */
+/* the next 4 functions are for the auton for each respective corner. 
+   the issue that wasn't working was that the code kept getting stuck in the turning functions
+   the best way i think you can solve this is by using normal turn instead of PID turning, and 
+   i made a new turning function called regLeft() instead of turnLeft(), so try using that 
+   instead */
 
 // void bluePos() {
 //   // STARTING: https://www.youtube.com/watch?v=mfGBy_0xaxo
@@ -422,75 +309,76 @@ double* calcRTangle(double longleg, double shortleg) {
 
 
 void test() { // auton testing
-  driveBackward(1);
-  turnRight(45);
-  // turnLeft(90);
+  drive(-1);
+  turnLeft(90);
+  clamp.set(true);
 }
 
 void autonSkills() { // unfinished skills auton
-  driveBackward(0.45);
+  drive(-0.2);
   clamp.set(true);
   intakeMotor.spin(forward, 100, pct);
   turnRight(90);
-  driveForward(1);
+  drive(1);
   wait(0.3, sec);
-  driveForward(0.5);
+  drive(0.3);
+  wait(1, sec);
   turnRight(110);
-  driveForward(1.4);
-  driveBackward(2.07);
+  drive(1.4);
+  turnRight(10);
+  wait(1.5, sec);
+  drive(-2);
   clamp.set(false);
-  driveForward(0.3);
-  turnLeft(117);
-  driveBackward(3.85);
+  drive(0.15);
+  turnLeft(120);
+  drive(-3.85);
   clamp.set(true);
-  driveForward(0.25);
-  turnRight(90);
-  driveForward(1);
-  turnRight(90);
-  driveForward(1);
-  turnRight(90);
-  driveForward(1.5);
-  turnLeft(110);
-  driveBackward(0.5);
-  clamp.set(false);
+  // drive(0.25);
+  // turnRight(90);
+  // drive(1);
+  // turnRight(90);
+  // drive(1);
+  // turnRight(90);
+  // drive(1.5);
+  // turnLeft(110);
+  // drive(-0.5);
+  // clamp.set(false);
 }
 
 
 
 void preloadREDPOS() {
-  driveBackward(1.5);
+  drive(-1.3);
   clamp.set(true);
-  intakeMotor.spin(forward, 80, pct);
+  intakeMotor.spin(forward, 100, pct);
   turnLeft(90);
-  driveForward(1);
-  turnRight(165);
-  driveForward(1.5);
+  drive(1);
+  turnRight(175);
+  drive(1.5);
 
 }
 void preloadREDNEG() {
-  driveBackward(1.4);
+  drive(-1.3);
   clamp.set(true);
-  intakeMotor.spin(forward, 70, pct);
+  intakeMotor.spin(forward, 100, pct);
   turnLeft(90);
-  driveForward(1);
+  drive(1);
 }
 void preloadBLUEPOS() {
-  driveBackward(1.5); 
-  wait(1,sec);
+  drive(-1.3); 
   clamp.set(true);
-  driveForward(0.2);
   intakeMotor.spin(forward, 70, pct);
   turnRight(90);
-  driveForward(1);
-  turnLeft(180);
-  driveForward(2);
+  drive(1);
+  turnLeft(175);
+  drive(1.5);
 }
 void preloadBLUENEG() {
-  driveBackward(1.4);
+  drive(-1.3);
   clamp.set(true);
   intakeMotor.spin(forward, 70, pct);
   turnLeft(90);
-  driveForward(1);
+  drive(1);
 }
 
 
@@ -504,6 +392,9 @@ void preloadBLUENEG() {
 // // driving control function: call me to explain the code if you need to adjust drive speed or anything else
 void usercontrol(void) {
   // User control code here, inside the loop
+  clamp.set(false);
+  doink.set(false);
+  double k = 1;
   while (1) {
     double logDiv = 185;
 
@@ -516,8 +407,7 @@ void usercontrol(void) {
       logLR *= -1;
     }
 
-    // constant multiplied to speed
-    double k = 1;
+    // constant multiplied to speed, currently not in use just for testing purpsoses
 
     if (c.ButtonR1.PRESSED) {intakeMotor.spin(forward, 100, pct);}
     if (c.ButtonR2.PRESSED) {intakeMotor.spin(reverse, 100, pct);}
@@ -527,8 +417,8 @@ void usercontrol(void) {
     if (c.ButtonL2.PRESSED) {clamp.set(false);}
     if (c.ButtonX.PRESSED) {doink.set(true);}
     if (c.ButtonB.PRESSED) {doink.set(false);}
-    if (c.ButtonUp.PRESSED) {logDiv = 100;}
-    if (c.ButtonDown.PRESSED) {logDiv = 185;}
+    if (c.ButtonUp.PRESSED) {k = 10;}
+    if (c.ButtonDown.PRESSED) {k = 1;}
     
 
     leftF.spin(forward, (logFD + logLR*0.5)*k, pct);
@@ -548,11 +438,16 @@ void usercontrol(void) {
    it is currently coded to have the defaultAuton(), driving forward 5 inches, in the first slot, so you will not have to click the brain to 
    select the first auton */
 
+
+
+// NEEV AND AADITYA (or whoever is in drivebox): when it says something like "case 4", that means the Brain will read AUTON 5. 
+// this is because code counts starting from 0, not 1, but whether or not you understand it, keep this in mind if I am not at a competition.
 void autonomous(void) {
   auto_started = true;
   switch(current_auton_selection){ 
     case 0:
-      preloadREDPOS();
+      autonSkills();
+      // preloadREDPOS();
       break;
     case 1:
       preloadREDNEG();
@@ -574,6 +469,8 @@ void autonomous(void) {
     case 7:
       usercontrol();
   }
+  // clamp.set(false);
+  doink.set(false);
 } 
 
 int main() {
@@ -582,6 +479,8 @@ int main() {
   Competition.drivercontrol(usercontrol);
 
   thread t(brainDisplay);
+  clamp.set(false);
+  doink.set(false);
   // Run the pre-autonomous function.
   pre_auton();
 
