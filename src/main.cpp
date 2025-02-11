@@ -50,42 +50,45 @@ void pre_auton(void) {
   wait(3,sec);
 
   while(!auto_started){
-    Brain.Screen.setFillColor(213);
+    Brain.Screen.setFont(vex::fontType::mono60);
+    Brain.Screen.setFillColor(red);
     Brain.Screen.drawRectangle(270, 10, 80, 80);
-    Brain.Screen.drawRectangle(355, 10, 80, 80);
-    Brain.Screen.setFillColor(0);
     Brain.Screen.drawRectangle(270, 95, 80, 80);
+    Brain.Screen.printAt(270+25, 10+55, "-");
+    Brain.Screen.printAt(270+25, 95+55, "+");
+    Brain.Screen.setFillColor(blue);
+    Brain.Screen.drawRectangle(355, 10, 80, 80);
     Brain.Screen.drawRectangle(355, 95, 80, 80);
-    Brain.Screen.printAt(270+40, 10+40, "-");
-    Brain.Screen.printAt(355+40, 10+40, "+");
-    Brain.Screen.printAt(270+40, 95+40, "-");
-    Brain.Screen.printAt(355+40, 95+40, "+");
+    Brain.Screen.printAt(355+25, 10+55, "-");
+    Brain.Screen.printAt(355+25, 95+55, "+");
 
+    Brain.Screen.setFillColor(black);
+    Brain.Screen.setFont(vex::fontType::mono30);
     Brain.Screen.printAt(5, 170, "SELECTED AUTON:");
     switch(current_auton_selection){
       case 0:
-        Brain.Screen.printAt(5, 150, "Auton 1");
+        Brain.Screen.printAt(5, 210, "1. RED POSITIVE");
         break;
       case 1:
-        Brain.Screen.printAt(5, 150, "Auton 2");
+        Brain.Screen.printAt(5, 210, "2. RED NEGATIVE");
         break;
       case 2:
-        Brain.Screen.printAt(5, 150, "Auton 3");
+        Brain.Screen.printAt(5, 210, "3. BLUE POSITIVE");
         break;
       case 3:
-        Brain.Screen.printAt(5, 150, "Auton 4");
+        Brain.Screen.printAt(5, 210, "4. BLUE NEGATIVE");
         break;
       case 4:
-        Brain.Screen.printAt(5, 150, "Auton 5");
+        Brain.Screen.printAt(5, 210, "5. AUTON SKILLS");
         break;
       case 5:
-        Brain.Screen.printAt(5, 150, "Auton 6");
+        Brain.Screen.printAt(5, 210, "Auton 6");
         break;
       case 6:
-        Brain.Screen.printAt(5, 150, "Auton 7");
+        Brain.Screen.printAt(5, 210, "Auton 7");
         break;
       case 7:
-        Brain.Screen.printAt(5, 150, "Auton 8");
+        Brain.Screen.printAt(5, 210, "Auton 8");
         break;
     }
     if(Brain.Screen.pressing()){
@@ -112,7 +115,7 @@ void pre_auton(void) {
    going to try using regular left turning but I didn't get a chance to. You can use the 2 hours 
    either trying to get turning to work with auton or practicing driving strategy */
 
-void drive(double target) {
+void drive(double target, double max = 40) {
   leftF.resetPosition();
   rightF.resetPosition();
   target *= tile;
@@ -127,8 +130,8 @@ void drive(double target) {
     derivative = error - previousError;
 
     double speed = error*kp - derivative*kd;
-    if (speed > 40) speed = 40;
-    if (speed < -40) speed = -40;
+    if (speed > max) speed = max;
+    if (speed < -max) speed = -max;
 
     leftT.spin(forward, speed, pct);
     leftF.spin(forward, speed, pct);
@@ -216,6 +219,7 @@ void turnRight(double angle) {
 
 void brainDisplay() {
   while (true) {
+    Brain.Screen.setFont(vex::fontType::mono15);
     Brain.Screen.printAt(10, 30, "Global Left %f", leftB.position(degrees));
     Brain.Screen.printAt(10, 50, "GLobal Right %f", rightB.position(degrees));
     Brain.Screen.printAt(10, 70, "Left %f", leftF.position(degrees));
@@ -345,6 +349,42 @@ void autonSkills() { // unfinished skills auton
   // clamp.set(false);
 }
 
+void autonSkills2() {
+  intakeMotor.spin(forward, 70, pct);
+  turnLeft(116.5);
+  drive(-1, 20);
+  clamp.set(true);
+  turnRight(16.5);
+  drive(0.2);
+  turnRight(180-26.5);
+  drive(3.7);
+  turnRight(180-26.5);
+  drive(3.5);
+  turnRight(180-26.5);
+  clamp.set(false);
+  turnRight(90-16.5);
+  drive(6);
+  wait(0.2);
+  turnLeft(10);
+  drive(1.3);
+  doink.set(true);
+  turnLeft(170);
+  drive(1);
+  doink.set(false);
+//20
+  drive(-3.5, 25);
+  clamp.set(true);
+  turnRight(153);
+  drive(3.2);
+  wait(0.3);
+  drive(-0.5);
+  turnLeft(30);
+  drive(3);
+  turnRight(200);
+  drive(-0.3);
+  clamp.set(false)
+}
+
 
 
 void preloadREDPOS() {
@@ -374,11 +414,22 @@ void preloadBLUEPOS() {
   drive(1.5);
 }
 void preloadBLUENEG() {
-  drive(-1.3);
+  drive(-1.4, 25);
   clamp.set(true);
   intakeMotor.spin(forward, 70, pct);
+  wait(0.1, sec);
+  drive(0.2, 70); // TEST THIS PART SATURDAY
+  drive(-0.2, 70); // TEST THSI PART SATURDAY most likely dont need bc clamp fixed but idk
+  wait(0.3, sec);
   turnLeft(90);
   drive(1);
+  wait(1.8, sec);
+  turnLeft(90);
+  drive(0.6, 15);
+  wait(0.3, sec);
+  drive(-0.6);
+  turnLeft(85);
+  drive(1.6);
 }
 
 
@@ -446,7 +497,7 @@ void autonomous(void) {
   auto_started = true;
   switch(current_auton_selection){ 
     case 0:
-      autonSkills();
+      preloadBLUENEG();
       // preloadREDPOS();
       break;
     case 1:
