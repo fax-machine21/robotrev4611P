@@ -325,7 +325,7 @@ void autonSkills() { // unfinished skills auton
   wait(0.2, sec);
   turnRight(90);
   drive(1, 30);
-  wait(0.5, sec);
+  wait(0.3, sec);
   drive(0.3, 25);
   wait(1, sec);
   turnRight(110);
@@ -338,8 +338,8 @@ void autonSkills() { // unfinished skills auton
   clamp.set(false);
   wait(.1, sec);
   drive(0.075);
-  turnLeft(110);
-  drive(-3.45, 25);
+  turnLeft(109);
+  drive(-3.43, 25);
   clamp.set(true);
   intakeMotor.spin(forward, 100, pct);
   turnRight(90);
@@ -348,7 +348,7 @@ void autonSkills() { // unfinished skills auton
   drive(1);
   turnRight(90);
   drive(1.5);
-  turnRight(135);
+  turnRight(120);
   drive(-0.5);
   clamp.set(false);
 }
