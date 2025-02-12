@@ -18,7 +18,7 @@ competition Competition;
 // this section defines global variables (variables that are used across different functions) and also the motors and vex parts
 vex::brain     Brain;
 motor leftF = motor(PORT16, true);
-motor leftB = motor(PORT17, true);
+motor leftB = motor(PORT11, true);
 motor leftT = motor(PORT18, false); // port 3 is broken
 motor intakeMotor = motor(PORT1, false);
 
@@ -26,7 +26,7 @@ motor rightF = motor(PORT4, false);
 motor rightB = motor(PORT10, false);
 motor rightT = motor(PORT7, true);
 
-inertial inert = inertial(PORT11);
+inertial inert = inertial(PORT17);
 controller c = controller();
 digital_out doink = digital_out(Brain.ThreeWirePort.A);
 digital_out clamp = digital_out(Brain.ThreeWirePort.B);
@@ -319,34 +319,38 @@ void test() { // auton testing
 }
 
 void autonSkills() { // unfinished skills auton
-  drive(-0.2);
+  drive(-0.45, 20);
+  clamp.set(true);
+  intakeMotor.spin(forward, 100, pct);
+  wait(0.2, sec);
+  turnRight(90);
+  drive(1, 30);
+  wait(0.5, sec);
+  drive(0.3, 25);
+  wait(1, sec);
+  turnRight(110);
+  drive(1.4, 30);
+  turnRight(10);
+  wait(0.3, sec);
+  drive(-1.9);
+  intakeMotor.stop(brake);
+  wait(.1, sec);
+  clamp.set(false);
+  wait(.1, sec);
+  drive(0.075);
+  turnLeft(110);
+  drive(-3.45, 25);
   clamp.set(true);
   intakeMotor.spin(forward, 100, pct);
   turnRight(90);
   drive(1);
-  wait(0.3, sec);
-  drive(0.3);
-  wait(1, sec);
-  turnRight(110);
-  drive(1.4);
-  turnRight(10);
-  wait(1.5, sec);
-  drive(-2);
+  turnRight(90);
+  drive(1);
+  turnRight(90);
+  drive(1.5);
+  turnRight(135);
+  drive(-0.5);
   clamp.set(false);
-  drive(0.15);
-  turnLeft(120);
-  drive(-3.85);
-  clamp.set(true);
-  // drive(0.25);
-  // turnRight(90);
-  // drive(1);
-  // turnRight(90);
-  // drive(1);
-  // turnRight(90);
-  // drive(1.5);
-  // turnLeft(110);
-  // drive(-0.5);
-  // clamp.set(false);
 }
 
 void autonSkills2() {
@@ -364,7 +368,7 @@ void autonSkills2() {
   clamp.set(false);
   turnRight(90-16.5);
   drive(6);
-  wait(0.2);
+  wait(0.2, sec);
   turnLeft(10);
   drive(1.3);
   doink.set(true);
@@ -376,13 +380,13 @@ void autonSkills2() {
   clamp.set(true);
   turnRight(153);
   drive(3.2);
-  wait(0.3);
+  wait(0.3, sec);
   drive(-0.5);
   turnLeft(30);
   drive(3);
   turnRight(200);
   drive(-0.3);
-  clamp.set(false)
+  clamp.set(false);
 }
 
 
@@ -398,11 +402,22 @@ void preloadREDPOS() {
 
 }
 void preloadREDNEG() {
-  drive(-1.3);
+  drive(-1.4, 25);
   clamp.set(true);
-  intakeMotor.spin(forward, 100, pct);
-  turnLeft(90);
-  drive(1);
+  intakeMotor.spin(forward, 70, pct);
+  wait(0.1, sec);
+  // drive(0.2, 70); // TEST THIS PART SATURDAY
+  // drive(-0.2, 70); // TEST THSI PART SATURDAY most likely dont need bc clamp fixed but idk
+  wait(0.3, sec);
+  turnRight(90);
+  drive(0.8, 20);
+  wait(2, sec);
+  // turnRight(90);
+  // drive(0.55, 15);
+  // wait(0.3, sec);
+  // drive(-0.6);= 
+  // turnRight(90);
+  drive(-1.6);
 }
 void preloadBLUEPOS() {
   drive(-1.3); 
@@ -418,8 +433,8 @@ void preloadBLUENEG() {
   clamp.set(true);
   intakeMotor.spin(forward, 70, pct);
   wait(0.1, sec);
-  drive(0.2, 70); // TEST THIS PART SATURDAY
-  drive(-0.2, 70); // TEST THSI PART SATURDAY most likely dont need bc clamp fixed but idk
+  // drive(0.2, 70); // TEST THIS PART SATURDAY
+  // drive(-0.2, 70); // TEST THSI PART SATURDAY most likely dont need bc clamp fixed but idk
   wait(0.3, sec);
   turnLeft(90);
   drive(1);
@@ -497,7 +512,7 @@ void autonomous(void) {
   auto_started = true;
   switch(current_auton_selection){ 
     case 0:
-      preloadBLUENEG();
+      preloadREDNEG();
       // preloadREDPOS();
       break;
     case 1:
@@ -510,7 +525,7 @@ void autonomous(void) {
       preloadBLUENEG();
       break;
     case 4:
-      test();
+      autonSkills();
       break;
     case 5:
       break;
