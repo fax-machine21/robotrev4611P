@@ -67,10 +67,10 @@ void pre_auton(void) {
     Brain.Screen.printAt(5, 170, "SELECTED AUTON:");
     switch(current_auton_selection){
       case 0:
-        Brain.Screen.printAt(5, 210, "1. RED POSITIVE");
+        Brain.Screen.printAt(5, 210, "1. RED POSITIVE ");
         break;
       case 1:
-        Brain.Screen.printAt(5, 210, "2. RED NEGATIVE");
+        Brain.Screen.printAt(5, 210, "2. RED NEGATIVE ");
         break;
       case 2:
         Brain.Screen.printAt(5, 210, "3. BLUE POSITIVE");
@@ -79,22 +79,37 @@ void pre_auton(void) {
         Brain.Screen.printAt(5, 210, "4. BLUE NEGATIVE");
         break;
       case 4:
-        Brain.Screen.printAt(5, 210, "5. AUTON SKILLS");
+        Brain.Screen.printAt(5, 210, "5. AUTON SKILLS ");
         break;
       case 5:
-        Brain.Screen.printAt(5, 210, "Auton 6");
+        Brain.Screen.printAt(5, 210, "Auton 6         ");
         break;
       case 6:
-        Brain.Screen.printAt(5, 210, "Auton 7");
+        Brain.Screen.printAt(5, 210, "Auton 7         ");
         break;
       case 7:
-        Brain.Screen.printAt(5, 210, "Auton 8");
+        Brain.Screen.printAt(5, 210, "Auton 8         ");
         break;
     }
     if(Brain.Screen.pressing()){
       while(Brain.Screen.pressing()) {}
       current_auton_selection ++;
-    } else if (current_auton_selection == 8){
+
+      // if (270 < Brain.Screen.xPosition() < 350 && 95 < Brain.Screen.yPosition() < 175) {
+      //   current_auton_selection = 0;
+      // }
+      // if (270 < Brain.Screen.xPosition() < 350 && 10 < Brain.Screen.yPosition() < 90) {
+      //   current_auton_selection = 1;
+      // }
+      // if (355 < Brain.Screen.xPosition() < 435 && 95 < Brain.Screen.yPosition() < 175) {
+      //   current_auton_selection = 2;
+      // }
+      // if (355 < Brain.Screen.xPosition() < 435 && 10 < Brain.Screen.yPosition() < 90) {
+      //   current_auton_selection = 3;
+      // }
+
+    }
+    else if (current_auton_selection == 8){
       current_auton_selection = 0;
     }
     task::sleep(10);
