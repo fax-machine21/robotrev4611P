@@ -17,24 +17,30 @@ competition Competition;
 
 // this section defines global variables (variables that are used across different functions) and also the motors and vex parts
 vex::brain     Brain;
-motor leftF = motor(PORT16, true);
-motor leftB = motor(PORT11, true);
-motor leftT = motor(PORT18, false); // port 3 is broken
+motor leftF = motor(PORT6, true);
+motor leftB = motor(PORT4, true);
+motor leftT = motor(PORT3, false);
+
+motor rightT = motor(PORT10, true);
+motor rightF = motor(PORT9, false);
+motor rightB = motor(PORT20, false);
+
+motor sixbar = motor(PORT7, false);
 motor intakeMotor = motor(PORT1, false);
 
-motor rightF = motor(PORT4, false);
-motor rightB = motor(PORT10, false);
-motor rightT = motor(PORT7, true);
+inertial inert = inertial(PORT2);
+optical optic = optical(PORT5);
 
-inertial inert = inertial(PORT17);
 controller c = controller();
-digital_out doink = digital_out(Brain.ThreeWirePort.A);
-digital_out clamp = digital_out(Brain.ThreeWirePort.B);
+digital_out doink = digital_out(Brain.ThreeWirePort.B);
+digital_out clamp = digital_out(Brain.ThreeWirePort.A);
 
 double gAngle = inert.rotation(degrees);
 const int tile = 345;
 int current_auton_selection = 0;
 bool auto_started = false;
+bool blueSort = false;
+bool redSort = false;
 
 
 
@@ -165,7 +171,37 @@ void drive(double target, double max = 40) {
   rightB.stop(brake);
 }
 
-// // this is a very intelligent piece of code that makes the robot turn left and makes the team very happy because it allows our robot to turn left to grab the points and make us very hpapy
+void driveReg(double target, double max = 40) {
+  leftF.resetPosition();
+  rightF.resetPosition();
+  target *= tile;
+  double error = target - (leftF.position(degrees) + rightF.position(degrees))/2;
+
+  while (fabs(error) > 3) {
+    error = target - (leftF.position(degrees) + rightF.position(degrees))/2;
+
+    double speed = max;
+    if (speed > max) speed = max;
+    if (speed < -max) speed = -max;
+
+    leftT.spin(forward, speed, pct);
+    leftF.spin(forward, speed, pct);
+    leftB.spin(forward, speed, pct);
+    rightF.spin(forward, speed, pct);
+    rightT.spin(forward, speed, pct);
+    rightB.spin(forward, speed, pct);
+    wait(10, msec);
+  }
+
+  leftF.stop(brake);
+  leftT.stop(brake);
+  leftB.stop(brake);
+  rightF.stop(brake);
+  rightT.stop(brake);
+  rightB.stop(brake);
+}
+
+// this is a very intelligent piece of code that makes the robot turn left and makes the team very happy because it allows our robot to turn left to grab the points and make us very hpapy
 void turnLeft(double angle) {
   inert.resetRotation();
   double kp = 0.53;
@@ -232,21 +268,53 @@ void turnRight(double angle) {
     rightB.stop(brake);
 }
 
+void intake() {
+  intakeMotor.resetPosition();
+  intakeMotor.spin(forward, 100, pct);
+  double pos = intakeMotor.position(degrees);
+  while (true) {
+    double prevPos = pos;
+    wait(1, sec);
+    pos = intakeMotor.position(degrees);
+    if (fabs(prevPos - pos) < 3) {
+      intakeMotor.spin(reverse, 100, pct);
+      wait(0.3, sec);
+      intakeMotor.spin(forward, 100, pct);
+    }
+  }
+}
+
+void moveSixbar(vex::directionType direction) {
+  sixbar.spin(direction, 100, pct);
+  double position = sixbar.position(degrees);
+  double prevPos;
+  while (true) {
+    prevPos = position;
+    wait(0.2, seconds);
+    position = sixbar.position(degrees);
+    if (fabs(position-prevPos) < 5) {
+      return;
+    }
+  }
+}
+
 void brainDisplay() {
   while (true) {
     Brain.Screen.setFont(vex::fontType::mono15);
     Brain.Screen.printAt(10, 30, "Global Left %f", leftB.position(degrees));
-    Brain.Screen.printAt(10, 50, "GLobal Right %f", rightB.position(degrees));
-    Brain.Screen.printAt(10, 70, "Left %f", leftF.position(degrees));
-    Brain.Screen.printAt(10, 90, "Right %f", rightF.position(degrees));
-    Brain.Screen.printAt(10, 110, "Inertial %f", inert.rotation(degrees));
+    Brain.Screen.printAt(10, 40, "GLobal Right %f", rightB.position(degrees));
+    Brain.Screen.printAt(10, 50, "Left %f", leftF.position(degrees));
+    Brain.Screen.printAt(10, 60, "Right %f", rightF.position(degrees));
+    Brain.Screen.printAt(10, 70, "Inertial %f", inert.rotation(degrees));
+    Brain.Screen.printAt(10, 80, "6bar %f", sixbar.position(degrees));
+    Brain.Screen.printAt(10, 90, "Conveor %f", intakeMotor.position(degrees));
     wait(20, msec);
   }
 }
 
 
 
-// // ============================================== AUTON FUNCTIONS ===================================================
+// ============================================== AUTON FUNCTIONS ===================================================
 
 /* the next 4 functions are for the auton for each respective corner. 
    the issue that wasn't working was that the code kept getting stuck in the turning functions
@@ -254,83 +322,25 @@ void brainDisplay() {
    i made a new turning function called regLeft() instead of turnLeft(), so try using that 
    instead */
 
-// void bluePos() {
-//   // STARTING: https://www.youtube.com/watch?v=mfGBy_0xaxo
-//   // Roughly a 60 degree angle from the wall we are at (facing the closest mogo) and right next to the red ring to the left of us 
-//   driveBackward(hypot(0.5, 1));
-//   clamp.set(true);
-//   intakeMotor.spin(forward, 70, pct);
-//   turnRight(60);
-//   driveForward(0.75);
-//   turnRight(120);
-//   driveBackward(hypot(3, 1.5));
-//   clamp.set(false);
-//   driveForward(hypot(3, 1.5));
-//   turnLeft(5);
-//   driveForward(hypot(0.5, 1)); // ladder
-// }
+void bluePos() {
+  
+}
 
-// void blueNeg() {
-//   // STARTING: facing the nearest mogo
-//   // NOTE: when possible, start by putting preload on alliance stake
-//   driveBackward(1);
-//   clamp.set(true);
-//   intakeMotor.spin(forward, 70, pct);
-//   driveBackward(0.2);
-//   turnLeft(90);
-//   driveForward(1*tile);
-//   turnLeft(90);
-//   driveForward(1*tile);
-//   driveBackward(0.5*tile);
-//   turnRight(45);
-//   driveForward(hypot(0.5, 0.5)*tile);
-//   driveBackward(hypot(1, 1)*tile);
-//   turnLeft(135);
-//   driveForward(1*tile); // ladder
-// }
+void blueNeg() {
+  
+}
 
-// void redPos() {
-//   // STARTING: https://www.youtube.com/watch?v=mfGBy_0xaxo
-//   // Roughly a 60 degree angle from the wall we are at (facing the closest mogo) and right next to the red ring to the left of us 
-//   driveBackward(1.5*tile);
-//   clamp.set(true);
-//   intakeMotor.spin(forward, 70, pct);
-//   turnLeft(90);
-//   wait(0.5, sec);
-//   driveForward(0.75*tile);
-//   // wait(0.5, sec);
-//   // turnLeft(120);
-//   // driveBackward(hypot(3, 1.5)*tile);
-//   // clamp.set(false);
-//   // driveForward(hypot(3, 1.5)*tile);
-//   // turnRight(5);
-//   // driveForward(hypot(0.5, 1)*tile); // ladder
-// }
+void redPos() {
+  
+}
 
-// void redNeg() {
-//   // STARTING: facing the nearest mogo
-//   // NOTE: when possible, start by putting preload on alliance stake
-//   driveBackward(1*tile);
-//   clamp.set(true);
-//   intakeMotor.spin(forward, 70, pct);
-//   driveBackward(0.2*tile);
-//   turnRight(90);
-//   driveForward(1*tile);
-//   turnRight(90);
-//   driveForward(1*tile);
-//   driveBackward(0.5*tile);
-//   turnLeft(45);
-//   driveForward(hypot(0.5, 0.5)*tile);
-//   driveBackward(hypot(1, 1)*tile);
-//   turnRight(135);
-//   driveForward(1*tile); // ladder
-// }
+void redNeg() {
+  
+}
 
 
 void test() { // auton testing
-  drive(-1);
-  turnLeft(90);
-  clamp.set(true);
+  thread i(intake);
 }
 
 void autonSkills() { // unfinished skills auton
@@ -353,8 +363,8 @@ void autonSkills() { // unfinished skills auton
   clamp.set(false);
   wait(.1, sec);
   drive(0.075);
-  turnLeft(109);
-  drive(-3.43, 25);
+  turnLeft(107);
+  drive(-3.45, 25);
   clamp.set(true);
   intakeMotor.spin(forward, 100, pct);
   turnRight(90);
@@ -407,14 +417,18 @@ void autonSkills2() {
 
 
 void preloadREDPOS() {
-  drive(-1.3);
+  drive(-1.4, 25); 
   clamp.set(true);
-  intakeMotor.spin(forward, 100, pct);
+  intakeMotor.spin(forward, 70, pct);
   turnLeft(90);
   drive(1);
+  wait(0.5, sec);
   turnRight(175);
-  drive(1.5);
-
+  driveReg(1.65, 30);
+  wait(1.5, sec);
+  intakeMotor.spin(reverse, 100, pct);
+  wait(0.2, sec);
+  intakeMotor.stop(brake);
 }
 void preloadREDNEG() {
   drive(-1.4, 25);
@@ -425,23 +439,32 @@ void preloadREDNEG() {
   // drive(-0.2, 70); // TEST THSI PART SATURDAY most likely dont need bc clamp fixed but idk
   wait(0.3, sec);
   turnRight(90);
-  drive(0.8, 20);
-  wait(2, sec);
-  // turnRight(90);
-  // drive(0.55, 15);
-  // wait(0.3, sec);
-  // drive(-0.6);= 
-  // turnRight(90);
-  drive(-1.6);
+  drive(1);
+  wait(1.8, sec);
+  turnRight(90);
+  drive(0.6, 15);
+  wait(0.3, sec);
+  drive(-0.6);
+  turnRight(85);
+  driveReg(1.65, 30);
+  wait(1.5, sec);
+  intakeMotor.spin(reverse, 100, pct);
+  wait(0.2, sec);
+  intakeMotor.stop(brake);
 }
 void preloadBLUEPOS() {
-  drive(-1.3); 
+  drive(-1.4, 25); 
   clamp.set(true);
   intakeMotor.spin(forward, 70, pct);
   turnRight(90);
   drive(1);
+  wait(0.5, sec);
   turnLeft(175);
-  drive(1.5);
+  driveReg(1.65, 30);
+  wait(1.5, sec);
+  intakeMotor.spin(reverse, 100, pct);
+  wait(0.2, sec);
+  intakeMotor.stop(brake);
 }
 void preloadBLUENEG() {
   drive(-1.4, 25);
@@ -459,7 +482,11 @@ void preloadBLUENEG() {
   wait(0.3, sec);
   drive(-0.6);
   turnLeft(85);
-  drive(1.6);
+  driveReg(1.6, 30);
+  wait(1.5, sec);
+  intakeMotor.spin(reverse, 100, pct);
+  wait(0.2, sec);
+  intakeMotor.stop(brake);
 }
 
 
@@ -476,9 +503,14 @@ void usercontrol(void) {
   clamp.set(false);
   doink.set(false);
   double k = 1;
+  double logDiv = 185;
+  bool redirect = false;
+  bool blue = false;
+  bool red = false;
   while (1) {
-    double logDiv = 185;
-
+    c.Screen.clearScreen();
+    c.Screen.setCursor(1, 1);
+    c.Screen.print(redirect);
     int logFD = (c.Axis3.position()*c.Axis3.position()) / logDiv;
     if (c.Axis3.position() < 0) {
       logFD *= -1;
@@ -488,18 +520,51 @@ void usercontrol(void) {
       logLR *= -1;
     }
 
-    // constant multiplied to speed, currently not in use just for testing purpsoses
+    if (blueSort) {
+      if (blue) {
+
+      }
+    }
+
+
+    if (optic.hue() > 190) {blue = true;}
+    else {blue = false;}
+    if (optic.hue() < 40) {
+      red = true;
+    }
+    else {red = false;}
+
+    if (redirect) {
+      if (blue || red) {
+        wait(0.15, sec);
+        intakeMotor.stop(coast);
+        wait(0.05, sec);
+        intakeMotor.spin(reverse, 100, pct);
+        wait(2, sec);
+        intakeMotor.spin(forward, 100, pct);
+        redirect = false;
+      }
+    }
+
+
+
+    if (c.ButtonB.PRESSED) {redirect = true;}
 
     if (c.ButtonR1.PRESSED) {intakeMotor.spin(forward, 100, pct);}
     if (c.ButtonR2.PRESSED) {intakeMotor.spin(reverse, 100, pct);}
     if (c.ButtonR2.RELEASED) {intakeMotor.stop(brake);}
-    if (c.ButtonA.PRESSED) {intakeMotor.stop(brake);}
+
+    if (c.ButtonX.PRESSED && sixbar.position(degrees) < 420) {sixbar.spin(forward, 90, pct);}
+    if (sixbar.position(degrees) > 420) {sixbar.stop(hold);}
+    if (c.ButtonA.PRESSED) {sixbar.spin(reverse, 70, pct);}
+    if (c.ButtonX.RELEASED) {sixbar.stop(hold);}
+    if (c.ButtonA.RELEASED) {sixbar.stop(hold);}
+
     if (c.ButtonL1.PRESSED) {clamp.set(true);}
     if (c.ButtonL2.PRESSED) {clamp.set(false);}
-    if (c.ButtonX.PRESSED) {doink.set(true);}
-    if (c.ButtonB.PRESSED) {doink.set(false);}
-    if (c.ButtonUp.PRESSED) {k = 10;}
-    if (c.ButtonDown.PRESSED) {k = 1;}
+
+    if (c.ButtonUp.PRESSED) {doink.set(true);}
+    if (c.ButtonDown.PRESSED) {doink.set(false);}
     
 
     leftF.spin(forward, (logFD + logLR*0.5)*k, pct);
@@ -527,8 +592,7 @@ void autonomous(void) {
   auto_started = true;
   switch(current_auton_selection){ 
     case 0:
-      preloadREDNEG();
-      // preloadREDPOS();
+      preloadREDPOS();
       break;
     case 1:
       preloadREDNEG();
@@ -545,7 +609,7 @@ void autonomous(void) {
     case 5:
       break;
     case 6:
-      autonSkills();
+      test();
       break;
     case 7:
       usercontrol();
