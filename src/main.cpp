@@ -30,6 +30,7 @@ motor intakeMotor = motor(PORT1, false);
 
 inertial inert = inertial(PORT2);
 optical optic = optical(PORT5);
+distance lidar = distance(PORT19);
 
 controller c = controller();
 digital_out doink = digital_out(Brain.ThreeWirePort.B);
@@ -204,10 +205,10 @@ void driveReg(double target, double max = 40) {
 // this is a very intelligent piece of code that makes the robot turn left and makes the team very happy because it allows our robot to turn left to grab the points and make us very hpapy
 void turnLeft(double angle) {
   inert.resetRotation();
-  double kp = 0.53;
+  double kp = 0.3;
   // double ki = 0.1;
   double error = angle + inert.rotation(degrees);
-  double kd  = 0.08;
+  double kd  = 0.2;
   double derivative = 0.0;
   // double integral = 0.0;
   
@@ -219,12 +220,12 @@ void turnLeft(double angle) {
 
     double speed = error*kp - derivative*kd;
 
-    leftF.spin(reverse, speed*0.5, pct);
-    leftB.spin(reverse, speed*0.5, pct);
-    leftT.spin(reverse, speed*0.5, pct);
-    rightF.spin(forward, speed*0.5, pct);
-    rightT.spin(forward, speed*0.5, pct);
-    rightB.spin(forward, speed*0.5, pct);
+    leftF.spin(reverse, speed, pct);
+    leftB.spin(reverse, speed, pct);
+    leftT.spin(reverse, speed, pct);
+    rightF.spin(forward, speed, pct);
+    rightT.spin(forward, speed, pct);
+    rightB.spin(forward, speed, pct);
   }
 
     leftF.stop(brake);
@@ -235,12 +236,12 @@ void turnLeft(double angle) {
     rightB.stop(brake);
 }
 
-void turnRight(double angle) {
+void turnRight(double angle, int max = 100) {
   inert.resetRotation();
-  double kp = 0.53;
+  double kp = 0.3;
   // double ki = 0.1;
   double error = angle - inert.rotation(degrees);
-  double kd  = 0.08;
+  double kd  = 0.25;
   double derivative = 0.0;
   // double integral = 0.0;
   
@@ -251,13 +252,14 @@ void turnRight(double angle) {
     // integral+=error;
 
     double speed = error*kp - derivative*kd;
+    if (speed > max) {speed = max;}
 
-    leftF.spin(forward, speed*0.5, pct);
-    leftB.spin(forward, speed*0.5, pct);
-    leftT.spin(forward, speed*0.5, pct);
-    rightF.spin(reverse, speed*0.5, pct);
-    rightT.spin(reverse, speed*0.5, pct);
-    rightB.spin(reverse, speed*0.5, pct);
+    leftF.spin(forward, speed, pct);
+    leftB.spin(forward, speed, pct);
+    leftT.spin(forward, speed, pct);
+    rightF.spin(reverse, speed, pct);
+    rightT.spin(reverse, speed, pct);
+    rightB.spin(reverse, speed, pct);
   }
 
     leftF.stop(brake);
@@ -267,6 +269,28 @@ void turnRight(double angle) {
     rightT.stop(brake);
     rightB.stop(brake);
 }
+
+// void turnRightReg(double angle) {
+//   inert.resetRotation();
+//   double error = angle - inert.rotation(degrees);
+//   while (fabs(error) > 0) {
+//     error = angle - inert.rotation(degrees);
+//     // integral+=error;
+//     double speed = 30;
+//     leftF.spin(forward, speed*0.5, pct);
+//     leftB.spin(forward, speed*0.5, pct);
+//     leftT.spin(forward, speed*0.5, pct);
+//     rightF.spin(reverse, speed*0.5, pct);
+//     rightT.spin(reverse, speed*0.5, pct);
+//     rightB.spin(reverse, speed*0.5, pct);
+//   }
+//     leftF.stop(brake);
+//     leftT.stop(brake);
+//     leftB.stop(brake);
+//     rightF.stop(brake);
+//     rightT.stop(brake);
+//     rightB.stop(brake);
+// }
 
 void intake() {
   intakeMotor.resetPosition();
@@ -285,17 +309,9 @@ void intake() {
 }
 
 void moveSixbar(vex::directionType direction) {
-  sixbar.spin(direction, 100, pct);
-  double position = sixbar.position(degrees);
-  double prevPos;
-  while (true) {
-    prevPos = position;
-    wait(0.2, seconds);
-    position = sixbar.position(degrees);
-    if (fabs(position-prevPos) < 5) {
-      return;
-    }
-  }
+  sixbar.spin(direction, 80, pct);
+  wait(0.5, sec);
+  sixbar.stop();
 }
 
 void brainDisplay() {
@@ -322,12 +338,55 @@ void brainDisplay() {
    i made a new turning function called regLeft() instead of turnLeft(), so try using that 
    instead */
 
-void bluePos() {
-  
+void goalrushRedPos() { //corner rush idea
+  driveReg(1.7, 50);
+  doink.set(true);
+  wait(75, msec);
+  drive(-0.55);
+  doink.set(false);
+  turnRight(90);
+  drive(-1, 25);
+  clamp.set(true);
+  intakeMotor.spin(forward, 100, pct);
+  wait(1, sec);
+  turnRight(120);
+  drive(0.5);
+}
+
+// PATH DOES NOT WORK !
+void diagonalGoalrushRed() {
+  driveReg(1.7, 60);
+  doink.set(true);
+  drive(-1);
+  doink.set(false);
+  turnLeft(180);
+  drive(-0.5);
+  clamp.set(true);
+  // intakeMotor.spin(forward, 100, pct);
+  // clamp.set(false);
+  // turnLeft(100);
+  // drive(0.5);
+  // drive(-1.3);
+  // clamp.set(true);
+  // turnLeft(90);
+  // drive(0.8);
 }
 
 void blueNeg() {
-  
+  moveSixbar(forward);
+  turnRight(20);
+  moveSixbar(reverse);
+  turnLeft(20);
+  drive(-1.5);
+  clamp.set(true);
+  turnLeft(125);
+  intakeMotor.spin(forward, 100, pct);
+  drive(1);
+  turnLeft(90);
+  drive(0.8, 25);
+  drive(-0.2);
+  turnLeft(90);
+  drive(1, 30);
 }
 
 void redPos() {
@@ -335,12 +394,30 @@ void redPos() {
 }
 
 void redNeg() {
-  
+  moveSixbar(forward);
+  drive(0.25, 20);
+  moveSixbar(reverse);
+  drive(-1.15, 25);
+  turnRight(30);
+  drive(-0.45);
+  clamp.set(true);
+  turnRight(90);
+  intakeMotor.spin(forward, 100, pct);
+  drive(0.7, 30);
+  turnRight(90);
+  drive(0.5, 20);
+  wait(2, sec);
+  turnRight(91, 80);
+  drive(0.5, 30);
 }
 
 
 void test() { // auton testing
-  thread i(intake);
+  moveSixbar(forward);
+  wait(0.2, sec);
+  moveSixbar(reverse);
+  wait(0.2, sec);
+  moveSixbar(forward);
 }
 
 void autonSkills() { // unfinished skills auton
@@ -490,12 +567,26 @@ void preloadBLUENEG() {
 }
 
 
+
 // /*---------------------------------------------------------------------------*/
 // /*                                                                           */
 // /*                               TASK FUNCTIONS                              */
 // /*                                                                           */
 // /*---------------------------------------------------------------------------*/
 
+void colorSortRing() {
+  wait(18, msec);
+  intakeMotor.spin(reverse, 100, pct);
+  wait(5, msec);
+  intakeMotor.spin(forward, 100, pct);
+}
+
+void redirectRing() {
+  wait(130, msec);
+  intakeMotor.spin(reverse, 100, pct);
+  wait(2, sec);
+  intakeMotor.spin(forward, 100, pct);
+}
 
 // // driving control function: call me to explain the code if you need to adjust drive speed or anything else
 void usercontrol(void) {
@@ -503,14 +594,18 @@ void usercontrol(void) {
   clamp.set(false);
   doink.set(false);
   double k = 1;
+  int intakeSpeed = 100;
   double logDiv = 185;
   bool redirect = false;
+  bool colorsort = false;
   bool blue = false;
   bool red = false;
   while (1) {
     c.Screen.clearScreen();
     c.Screen.setCursor(1, 1);
     c.Screen.print(redirect);
+    c.Screen.setCursor(1, 12);
+    c.Screen.print(colorsort);
     int logFD = (c.Axis3.position()*c.Axis3.position()) / logDiv;
     if (c.Axis3.position() < 0) {
       logFD *= -1;
@@ -520,37 +615,42 @@ void usercontrol(void) {
       logLR *= -1;
     }
 
-    if (blueSort) {
-      if (blue) {
 
-      }
-    }
-
-
-    if (optic.hue() > 190) {blue = true;}
+    if (optic.hue() > 180) {blue = true;}
     else {blue = false;}
-    if (optic.hue() < 40) {
+    if (optic.hue() < 25) {
       red = true;
     }
     else {red = false;}
 
     if (redirect) {
-      if (blue || red) {
-        wait(0.15, sec);
-        intakeMotor.stop(coast);
-        wait(0.05, sec);
-        intakeMotor.spin(reverse, 100, pct);
-        wait(2, sec);
-        intakeMotor.spin(forward, 100, pct);
+      if (lidar.objectDistance(mm) < 48) {
+        thread r(redirectRing);
         redirect = false;
       }
     }
+    if (colorsort) {
+      if (lidar.objectDistance(mm) < 48) {
+        if ((blueSort && blue) || (redSort && red)) {
+          thread c(colorSortRing);
+          colorsort = false;
+        }
+      }
+    }
 
+    if (redirect) {
+      intakeSpeed = 60;
+      intakeMotor.spin(forward, intakeSpeed, pct);
+    }
+    else {
+      intakeSpeed = 100;
+    }
 
 
     if (c.ButtonB.PRESSED) {redirect = true;}
+    if (c.ButtonLeft.PRESSED) {colorsort = true;}
 
-    if (c.ButtonR1.PRESSED) {intakeMotor.spin(forward, 100, pct);}
+    if (c.ButtonR1.PRESSED) {intakeMotor.spin(forward, intakeSpeed, pct);}
     if (c.ButtonR2.PRESSED) {intakeMotor.spin(reverse, 100, pct);}
     if (c.ButtonR2.RELEASED) {intakeMotor.stop(brake);}
 
@@ -574,7 +674,7 @@ void usercontrol(void) {
     rightT.spin(forward, (logFD - logLR*0.5)*k, pct);
     rightB.spin(forward, (logFD - logLR*0.5)*k, pct);
 
-    wait(20, msec);
+    wait(5, msec);
   }
 }
 
@@ -592,10 +692,10 @@ void autonomous(void) {
   auto_started = true;
   switch(current_auton_selection){ 
     case 0:
-      preloadREDPOS();
+      goalrushRedPos();
       break;
     case 1:
-      preloadREDNEG();
+      redNeg();
       break;
     case 2:
       preloadBLUEPOS();
@@ -609,7 +709,6 @@ void autonomous(void) {
     case 5:
       break;
     case 6:
-      test();
       break;
     case 7:
       usercontrol();
