@@ -89,13 +89,16 @@ void pre_auton(void) {
         Brain.Screen.printAt(5, 210, "5. AUTON SKILLS ");
         break;
       case 5:
-        Brain.Screen.printAt(5, 210, "Auton 6         ");
+        Brain.Screen.printAt(5, 210, "6. PRELOAD RPOS ");
         break;
       case 6:
-        Brain.Screen.printAt(5, 210, "Auton 7         ");
+        Brain.Screen.printAt(5, 210, "7. PRELOAD RNEG ");
         break;
       case 7:
-        Brain.Screen.printAt(5, 210, "Auton 8         ");
+        Brain.Screen.printAt(5, 210, "8. PRELOAD BPOS ");
+        break;
+      case 8:
+        Brain.Screen.printAt(5, 210, "9. PRELOAD BNEG ");
         break;
     }
     if(Brain.Screen.pressing()){
@@ -203,7 +206,7 @@ void driveReg(double target, double max = 40) {
 }
 
 // this is a very intelligent piece of code that makes the robot turn left and makes the team very happy because it allows our robot to turn left to grab the points and make us very hpapy
-void turnLeft(double angle) {
+void turnLeft(double angle, int max = 100) {
   inert.resetRotation();
   double kp = 0.3;
   // double ki = 0.1;
@@ -219,6 +222,7 @@ void turnLeft(double angle) {
     // integral += error;
 
     double speed = error*kp - derivative*kd;
+    if (speed > max) {speed = max;}
 
     leftF.spin(reverse, speed, pct);
     leftB.spin(reverse, speed, pct);
@@ -338,18 +342,20 @@ void brainDisplay() {
    i made a new turning function called regLeft() instead of turnLeft(), so try using that 
    instead */
 
-void goalrushRedPos() { //corner rush idea
-  driveReg(1.7, 50);
+void redPos() { //corner rush idea
+  driveReg(1.6, 50);
   doink.set(true);
   wait(75, msec);
-  drive(-0.55);
+  drive(-0.33);
+  wait(75, msec);
   doink.set(false);
-  turnRight(90);
-  drive(-1, 25);
+  wait(150, msec);
+  turnRight(89);
+  drive(-1.2, 20);
   clamp.set(true);
   intakeMotor.spin(forward, 100, pct);
   wait(1, sec);
-  turnRight(120);
+  turnRight(180);
   drive(0.5);
 }
 
@@ -374,23 +380,36 @@ void diagonalGoalrushRed() {
 
 void blueNeg() {
   moveSixbar(forward);
-  turnRight(20);
+  drive(0.3, 20);
   moveSixbar(reverse);
-  turnLeft(20);
-  drive(-1.5);
+  drive(-1.5, 25);
+  // turnLeft(30);
   clamp.set(true);
-  turnLeft(125);
+  turnLeft(120);
   intakeMotor.spin(forward, 100, pct);
-  drive(1);
+  drive(0.7, 30);
   turnLeft(90);
-  drive(0.8, 25);
-  drive(-0.2);
-  turnLeft(90);
-  drive(1, 30);
+  drive(0.5, 20);
+  wait(2, sec);
+  turnLeft(91, 80);
+  drive(0.5, 30);
 }
 
-void redPos() {
-  
+void bluePos() {
+  driveReg(1.6, 50);
+  doink.set(true);
+  wait(75, msec);
+  drive(-0.33);
+  wait(75, msec);
+  doink.set(false);
+  wait(150, msec);
+  turnLeft(89);
+  drive(-1.2, 20);
+  clamp.set(true);
+  intakeMotor.spin(forward, 100, pct);
+  wait(1, sec);
+  turnLeft(180);
+  drive(0.5);
 }
 
 void redNeg() {
@@ -610,7 +629,7 @@ void usercontrol(void) {
     if (c.Axis3.position() < 0) {
       logFD *= -1;
     }
-    int logLR = (c.Axis1.position()*c.Axis1.position()) / logDiv;
+    int logLR = c.Axis1.position()*c.Axis1.position()/150*0.5;
     if (c.Axis1.position() < 0) {
       logLR *= -1;
     }
@@ -654,8 +673,8 @@ void usercontrol(void) {
     if (c.ButtonR2.PRESSED) {intakeMotor.spin(reverse, 100, pct);}
     if (c.ButtonR2.RELEASED) {intakeMotor.stop(brake);}
 
-    if (c.ButtonX.PRESSED && sixbar.position(degrees) < 420) {sixbar.spin(forward, 90, pct);}
-    if (sixbar.position(degrees) > 420) {sixbar.stop(hold);}
+    if (c.ButtonX.PRESSED && sixbar.position(degrees) < 430) {sixbar.spin(forward, 90, pct);}
+    if (sixbar.position(degrees) > 430) {sixbar.stop(hold);}
     if (c.ButtonA.PRESSED) {sixbar.spin(reverse, 70, pct);}
     if (c.ButtonX.RELEASED) {sixbar.stop(hold);}
     if (c.ButtonA.RELEASED) {sixbar.stop(hold);}
@@ -667,12 +686,12 @@ void usercontrol(void) {
     if (c.ButtonDown.PRESSED) {doink.set(false);}
     
 
-    leftF.spin(forward, (logFD + logLR*0.5)*k, pct);
-    leftT.spin(forward, (logFD + logLR*0.5)*k, pct);
-    leftB.spin(forward, (logFD + logLR*0.5)*k, pct);
-    rightF.spin(forward, (logFD - logLR*0.5)*k, pct);
-    rightT.spin(forward, (logFD - logLR*0.5)*k, pct);
-    rightB.spin(forward, (logFD - logLR*0.5)*k, pct);
+    leftF.spin(forward, (logFD + logLR*0.55)*k, pct);
+    leftT.spin(forward, (logFD + logLR*0.55)*k, pct);
+    leftB.spin(forward, (logFD + logLR*0.55)*k, pct);
+    rightF.spin(forward, (logFD - logLR*0.55)*k, pct);
+    rightT.spin(forward, (logFD - logLR*0.55)*k, pct);
+    rightB.spin(forward, (logFD - logLR*0.55)*k, pct);
 
     wait(5, msec);
   }
@@ -692,26 +711,32 @@ void autonomous(void) {
   auto_started = true;
   switch(current_auton_selection){ 
     case 0:
-      goalrushRedPos();
+      redPos();
       break;
     case 1:
       redNeg();
       break;
     case 2:
-      preloadBLUEPOS();
+      bluePos();
       break;
     case 3:
-      preloadBLUENEG();
+      blueNeg();
       break;
     case 4:
       autonSkills();
       break;
     case 5:
+      preloadREDPOS();
       break;
     case 6:
+      preloadREDNEG();
       break;
     case 7:
-      usercontrol();
+      preloadBLUEPOS();
+      break;
+    case 8:
+      preloadBLUENEG();
+      break;
   }
   // clamp.set(false);
   doink.set(false);
