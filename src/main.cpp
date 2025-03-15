@@ -439,76 +439,108 @@ void test() { // auton testing
   moveSixbar(forward);
 }
 
-void autonSkills() { // unfinished skills auton
+
+void autonSkills() { // unfinished skills auton   
   drive(-0.45, 20);
   clamp.set(true);
   intakeMotor.spin(forward, 100, pct);
   wait(0.2, sec);
   turnRight(90);
   drive(1, 30);
+  wait(0.5, sec);
   wait(0.3, sec);
   drive(0.3, 25);
   wait(1, sec);
   turnRight(110);
-  drive(1.4, 30);
-  turnRight(10);
-  wait(0.3, sec);
-  drive(-1.9);
-  intakeMotor.stop(brake);
-  wait(.1, sec);
   clamp.set(false);
   wait(.1, sec);
   drive(0.075);
-  turnLeft(107);
+  turnLeft(110);
   drive(-3.45, 25);
+  turnLeft(109);
+  drive(-3.43, 25);
   clamp.set(true);
   intakeMotor.spin(forward, 100, pct);
-  turnRight(90);
-  drive(1);
-  turnRight(90);
+  turnRight(90); 
   drive(1);
   turnRight(90);
   drive(1.5);
+  turnRight(135);
   turnRight(120);
   drive(-0.5);
   clamp.set(false);
 }
 
-void autonSkills2() {
-  intakeMotor.spin(forward, 70, pct);
-  turnLeft(116.5);
-  drive(-1, 20);
-  clamp.set(true);
-  turnRight(16.5);
-  drive(0.2);
-  turnRight(180-26.5);
-  drive(3.7);
-  turnRight(180-26.5);
-  drive(3.5);
-  turnRight(180-26.5);
-  clamp.set(false);
-  turnRight(90-16.5);
-  drive(6);
-  wait(0.2, sec);
-  turnLeft(10);
-  drive(1.3);
-  doink.set(true);
-  turnLeft(170);
-  drive(1);
-  doink.set(false);
-//20
-  drive(-3.5, 25);
-  clamp.set(true);
-  turnRight(153);
-  drive(3.2);
-  wait(0.3, sec);
-  drive(-0.5);
-  turnLeft(30);
-  drive(3);
-  turnRight(200);
-  drive(-0.3);
-  clamp.set(false);
-}
+// void autonSkills() { // unfinished skills auton
+//   drive(-0.45, 20);
+//   clamp.set(true);
+//   intakeMotor.spin(forward, 100, pct);
+//   wait(0.2, sec);
+//   turnRight(90);
+//   drive(1, 30);
+//   wait(0.3, sec);
+//   drive(0.3, 25);
+//   wait(1, sec);
+//   turnRight(110);
+//   drive(1.4, 30);
+//   turnRight(10);
+//   wait(0.3, sec);
+//   drive(-1.9);
+//   intakeMotor.stop(brake);
+//   wait(.1, sec);
+//   clamp.set(false);
+//   wait(.1, sec);
+//   drive(0.075);
+//   turnLeft(107);
+//   drive(-3.45, 25);
+//   clamp.set(true);
+//   intakeMotor.spin(forward, 100, pct);
+//   turnRight(90);
+//   drive(1);
+//   turnRight(90);
+//   drive(1);
+//   turnRight(90);
+//   drive(1.5);
+//   turnRight(120);
+//   drive(-0.5);
+//   clamp.set(false);
+// }
+
+// void autonSkills2() {
+//   intakeMotor.spin(forward, 70, pct);
+//   turnLeft(116.5);
+//   drive(-1, 20);
+//   clamp.set(true);
+//   turnRight(16.5);
+//   drive(0.2);
+//   turnRight(180-26.5);
+//   drive(3.7);
+//   turnRight(180-26.5);
+//   drive(3.5);
+//   turnRight(180-26.5);
+//   clamp.set(false);
+//   turnRight(90-16.5);
+//   drive(6);
+//   wait(0.2, sec);
+//   turnLeft(10);
+//   drive(1.3);
+//   doink.set(true);
+//   turnLeft(170);
+//   drive(1);
+//   doink.set(false);
+// //20
+//   drive(-3.5, 25);
+//   clamp.set(true);
+//   turnRight(153);
+//   drive(3.2);
+//   wait(0.3, sec);
+//   drive(-0.5);
+//   turnLeft(30);
+//   drive(3);
+//   turnRight(200);
+//   drive(-0.3);
+//   clamp.set(false);
+// }
 
 
 
@@ -693,7 +725,7 @@ void usercontrol(void) {
     rightT.spin(forward, (logFD - logLR*0.55)*k, pct);
     rightB.spin(forward, (logFD - logLR*0.55)*k, pct);
 
-    wait(5, msec);
+    wait(20, msec);
   }
 }
 
